@@ -1,0 +1,21 @@
+{% extends 'index.html' %}
+
+{%block body%}
+    <section class="jumbotron">
+        <div class="container">
+            <h1  class="display-3">Inicio de sesión</h1>
+            <form name="loginForm"  method="post" action="">
+                <label>Usuario</label>
+                <input name="usuario" id="usuario" type="text">
+
+                <label>Contraseña</label>
+                <input type="password" name="password" id="password">
+
+                <input type="submit" value="Inicio de sesion">
+            </form>
+        </div>
+    </section>
+{% endblock %}
+
+
+
