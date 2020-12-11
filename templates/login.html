@@ -4,7 +4,12 @@
     <section class="jumbotron">
         <div class="container">
             <h1  class="display-3">Inicio de sesión</h1>
-            <form name="loginForm"  method="post" action="">
+             <section class="content">
+                {% for message in get_flashed_messages()%}
+                    <div class="flash">{{ message}}</div>
+                {% endfor %}
+            </section>
+            <form name="loginForm"  method="post" action="{{ url_for('login') }}">
                 <label>Usuario</label>
                 <input name="usuario" id="usuario" type="text">
 

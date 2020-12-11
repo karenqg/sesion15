@@ -8,6 +8,7 @@ import yagmail as yagmail
 app = Flask(__name__)
 
 from message import mensajes
+from db import get_db
 
 #Ocurrio un eror: The session is unavailable because no secret key was set.
 # Set the secret_key on the application to something unique and secret.
@@ -28,6 +29,7 @@ def myHome():
 def login():
     try:
         if request.method == 'POST':
+            db = get_db()
             username = request.form['usuario']
             password = request.form['password']
 
@@ -42,12 +44,14 @@ def login():
 
             print("usuario" + username + " clave:" + password)
 
-            if username == "Prueba" and password == "Prueba1234":
-                return redirect('mensaje')
+            user = db.execute('SELECT * FROM usuarios WHERE usuario=? AND contraseña=?',(username,password)).fetchone()
+
+            if user is None:
+               error = 'Usuario o contraseña inválidos'
             else:
-                error = "usuario y/o contraseña inválidos"
-                flash(error)
-                return render_template('login.html')
+                return redirect('mensaje')
+            flash(error)
+            return render_template('login.html')
 
         return render_template('login.html')
     except TypeError as e:
@@ -68,6 +72,8 @@ def register():
             email = request.form['email']
             error = None
 
+            db = get_db()
+
             if not utils.isUsernameValid(username):
                 error = "El usuario debe ser alfanumerico"
                 flash(error)
@@ -83,15 +89,23 @@ def register():
                 flash(error)
                 return render_template('register.html')
 
-            serverEmail = yagmail.SMTP('ejemplomisiontic@gmail.com', 'Maracuya1234')
+            if db.execute('SELECT id FROM usuarios WHERE correo=?', (email,)).fetchone() is not None:
+                error = 'El correo ya existe'.format(email)
+                flash(error)
+                return render_template('login.html')
 
-            serverEmail.send(to=email, subject='Activa tu cuenta',
-                             contents='Bienvenido, usa este link para activar tu cuenta')
+            db.execute('INSERT INTO usuarios (usuario,correo,contraseña) VALUES (?,?,?)',
+                (username, email, password)
+            )
 
+            db.commit()
             flash('Revisa tu correo para activar tu cuenta')
-
             return render_template('login.html')
 
+            #serverEmail = yagmail.SMTP('ejemplomisiontic@gmail.com', 'Maracuya1234')
+
+            #serverEmail.send(to=email, subject='Activa tu cuenta',
+            #                 contents='Bienvenido, Su cuenta ha sido creada')
         return render_template('register.html')
     except Exception as e:
         #print("Ocurrio un eror:", e)
