@@ -5,7 +5,7 @@ from flask import g
 def get_db():# conecté a la base de datos sqlite.
     try:
         if 'db' not in g:
-            g.db = sqlite3.connect('myChat')
+            g.db = sqlite3.connect('myChat.db')
             return g.db
     except Error:
         print(Error)

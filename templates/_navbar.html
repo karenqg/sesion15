@@ -11,8 +11,15 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li><a href="/register">Registrarse</a></li>
+          {% if g.user %}
+            <li><a href="{{ url_for('logout')}}">Cerrar Sesión</a></li>
+            <li><a href="{{ url_for('downloadimage')}}">Descargar imagen</a></li>
+            <li><a href="{{ url_for('downloadpdf')}}">Descargar Documento</a></li>
+          {% else %}
+             <li><a href="{{ url_for('register') }}">Registrarse</a>
             <li><a href="/login">Login</a></li>
+          {% endif %}
+
             <li><a href="/contactenos">Contáctenos</a></li>
           </ul>
         </div><!--/.nav-collapse -->

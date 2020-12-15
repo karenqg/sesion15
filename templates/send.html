@@ -1,0 +1,22 @@
+{% extends 'index.html' %}
+
+{%block body%}
+    <section class="jumbotron">
+        <div class="container">
+            <h1  class="display-3">Envio de mensajes</h1>
+             <section class="content">
+                {% for message in get_flashed_messages()%}
+                    <div class="flash">{{ message}}</div>
+                {% endfor %}
+            </section>
+            <form method="post" action="{{ url_for('send')}}">
+                <label for="para">Para</label>
+                <input name="para" id="para" required>
+                <label for="asunto">Asunto</label>
+                <input name="asunto" id="asunto" required>
+                <textarea name="mensaje" id="mensaje" required></textarea>
+                <input type="submit" value="Enviar">
+            </form>
+        </div>
+    </section>
+{% endblock %}
