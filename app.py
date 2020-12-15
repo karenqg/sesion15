@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, flash, jsonify, redirect, session, g, url_for, send_file
+from flask import Flask, render_template, request, flash, jsonify, redirect, session, g, url_for, send_file, make_response
 from formulario import Contactenos
 from message import mensajes
 from db import get_db, close_db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 import utils
 import os  # Agregue la libreria os
@@ -28,6 +29,7 @@ def login():
         if g.user:
             return redirect(url_for('send'))
         if request.method == 'POST':
+            close_db()
             db = get_db()
             username = request.form['usuario']
             password = request.form['password']
@@ -44,15 +46,20 @@ def login():
             print("usuario" + username + " clave:" + password)
 
             user = db.execute(
-                'SELECT * FROM usuarios WHERE usuario = ? AND contraseña = ?', (username, password)
+                'SELECT * FROM usuarios WHERE usuario = ?', (username, )
             ).fetchone()
-            print(user)
+
+            print(user[3])
             if user is None:
                 error = 'Usuario o contraseña inválidos'
             else:
-                session.clear()
-                session['user_id'] = user[0]
-                return redirect(url_for('send'))
+                if check_password_hash(user[3], password):
+                    session.clear()
+                    session['user_id'] = user[0]
+                    resp = make_response(redirect(url_for('send')))
+                    resp.set_cookie('username', username)
+                    print(resp)
+                    return redirect(url_for('send'))
             flash(error)
             return render_template('login.html')
 
@@ -61,6 +68,11 @@ def login():
         print("Ocurrio un eror:", e)
         return render_template('login.html')
 
+
+@app.route('/hello')
+def getcookie():
+    name = request.cookies.get('username')
+    return '<h1>'+name+'</h1>'
 
 @app.route('/contactenos')
 def contactus():
@@ -87,6 +99,7 @@ def register():
             password = request.form['password']
             email = request.form['email']
             error = None
+            close_db()
             db = get_db()
 
             if not utils.isUsernameValid(username):
@@ -109,9 +122,16 @@ def register():
                 flash(error)
                 return render_template('login.html')
 
-            query = 'INSERT INTO usuarios (usuario,correo,contraseña) VALUES (?,?,?)', (username, email, password)
+            hashPassword = generate_password_hash(password)
+
+            print(hashPassword)
+
+            query = 'INSERT INTO usuarios (usuario,correo,contraseña) VALUES (?,?,?)', (username, email, hashPassword)
             print(query)
-            db.execute(query)
+            db.execute(
+                'INSERT INTO usuarios (usuario, correo, contraseña) VALUES (?,?,?)',
+                (username, email, hashPassword)
+            )
 
             db.commit()
             flash('Revisa tu correo para activar tu cuenta')
@@ -120,7 +140,8 @@ def register():
         # serverEmail.send(to=email, subject='Activa tu cuenta',
         #                 contents='Bienvenido, Su cuenta ha sido creada')
         return render_template('register.html')
-    except:
+    except Exception as e:
+        print(e)
         return render_template('register.html')
 
 
@@ -135,21 +156,25 @@ def send():
     if request.method == 'POST':
         from_id = g.user[0]
 
+        name  = g.user[1]
+        print(name)
         print(from_id)
         to_username = request.form['para']
         subject = request.form['asunto']
         body = request.form['mensaje']
 
+        name = request.cookies.get('username')
+        print(name)
         if not to_username:
-            flash('Para campo requerido');
+            flash(':Para campo requerido');
             return render_template('send.html')
 
         if not subject:
-            flash('Asunto es requerido');
+            flash(':Asunto es requerido');
             return render_template('send.html')
 
         if not body:
-            flash('Mensaje es requerido');
+            flash(':Mensaje es requerido');
             return render_template('send.html')
 
         error = None
@@ -166,7 +191,7 @@ def send():
             return redirect('mensaje')
 
         if userto is None:
-            error = 'No existe ese usuario'
+            error = 'No existe el usuario digitado'
 
         if error is not None:
             flash(error)
