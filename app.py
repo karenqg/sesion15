@@ -58,8 +58,8 @@ def login():
                     session['user_id'] = user[0]
                     resp = make_response(redirect(url_for('send')))
                     resp.set_cookie('username', username)
-                    print(resp)
-                    return redirect(url_for('send'))
+                    return resp
+                    #return redirect(url_for('send'))
             flash(error)
             return render_template('login.html')
 
@@ -164,6 +164,7 @@ def send():
         body = request.form['mensaje']
 
         name = request.cookies.get('username')
+
         print(name)
         if not to_username:
             flash(':Para campo requerido');
