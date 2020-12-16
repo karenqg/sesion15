@@ -10,11 +10,11 @@
                 {% endfor %}
             </section>
             <form method="post" action="{{ url_for('send')}}">
-                <label for="para">Para</label>
+                <label class="form-label" for="para">Para</label>
                 <input name="para" id="para" >
-                <label for="asunto">Asunto</label>
+                <label class="form-label" for="asunto">Asunto</label>
                 <input name="asunto" id="asunto" required>
-                <textarea name="mensaje" id="mensaje" required></textarea>
+                <textarea class="form-control" name="mensaje" id="mensaje" required></textarea>
                 <input type="submit" value="Enviar">
             </form>
         </div>

@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, flash, jsonify, redirect, session, g, url_for, send_file, make_response
-from formulario import Contactenos
+from formulario import Contactenos, convertToBinaryData, writeTofile
 from message import mensajes
 from db import get_db, close_db
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from OpenSSL.crypto import FILETYPE_PEM
 
 import utils
 import os  # Agregue la libreria os
@@ -167,15 +169,15 @@ def send():
 
         print(name)
         if not to_username:
-            flash(':Para campo requerido');
+            flash(name + ' :el campo nombre es requerido');
             return render_template('send.html')
 
         if not subject:
-            flash(':Asunto es requerido');
+            flash(name + ' : el campo asunto es requerido');
             return render_template('send.html')
 
         if not body:
-            flash(':Mensaje es requerido');
+            flash(name + ' : el campo mensaje es requerido');
             return render_template('send.html')
 
         error = None
@@ -192,7 +194,7 @@ def send():
             return redirect('mensaje')
 
         if userto is None:
-            error = 'No existe el usuario digitado'
+            error = name + ' :el usuario digitado no existe'
 
         if error is not None:
             flash(error)
@@ -225,12 +227,13 @@ def load_logged_user():
 @app.route('/downloadimage', methods=('GET', 'POST'))
 # @login_required
 def downloadimage():
-    return send_file("../review/sesion15/resources/image.png", as_attachment=True)
+    return send_file("resources/image.png", as_attachment=True)
 
 @app.route( '/downloadpdf', methods=('GET', 'POST') )
 @login_required
 def downloadpdf():
-    return send_file( "../review/sesion15/resources/doc.pdf", as_attachment=True )
+    return send_file("resources/doc.pdf", as_attachment=True )
+
 
 
 @app.route('/logout')
@@ -238,6 +241,36 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/newproduct')
+def new_product():
+    photoPath = "resources/maracuya.png"
+    product_photo = convertToBinaryData(photoPath)
+    close_db()
+    db = get_db()
+    db.execute(
+        'INSERT INTO productos (nombre, cantidad, imagen)'
+        ' VALUES (?, ?, ?)',
+        ("Maracuyá", 15, product_photo)
+    )
+    db.commit()
+    flash("Producto creado")
+    return render_template("newproduct.html")
+
+@app.route('/getproduct' ,  methods=('GET', 'POST'))
+def get_product():
+    close_db()
+    db = get_db()
+    id=1
+    sql_fetch_blob_query = """SELECT * from productos where id = ?"""
+
+    record = db.execute(sql_fetch_blob_query, (id,)).fetchone()
+
+    writeTofile(record[3], 'static/images/'+record[1]+'.png')
+    close_db()
+
+    return render_template("getproducto.html")
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='127.0.0.1', port=443, ssl_context=('micertificado.pem', 'llaveprivada.pem') )
+
+#agregar a la segmentación

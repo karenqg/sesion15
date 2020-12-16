@@ -1,0 +1,18 @@
+{% extends 'index.html' %}
+
+{%block body%}
+    <section class="jumbotron">
+        <div class="container">
+            <h1  class="display-3">Nuevo producto</h1>
+             <section class="content">
+                {% for message in get_flashed_messages()%}
+                    <div class="flash">{{ message}}</div>
+                {% endfor %}
+            </section>
+
+        </div>
+    </section>
+{% endblock %}
+
+
+

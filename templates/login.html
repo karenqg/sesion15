@@ -10,10 +10,10 @@
                 {% endfor %}
             </section>
             <form name="loginForm"  method="post" action="{{ url_for('login') }}">
-                <label>Usuario</label>
+                <label class="form-label">Usuario</label>
                 <input name="usuario" id="usuario" type="text">
 
-                <label>Contraseña</label>
+                <label class="form-label">Contraseña</label>
                 <input type="password" name="password" id="password">
 
                 <input type="submit" value="Inicio de sesion">
